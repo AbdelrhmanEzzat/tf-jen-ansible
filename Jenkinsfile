@@ -28,14 +28,14 @@ pipeline {
                 terraform destroy \
                   -var="aws_access_key=${AWS_ACCESS_KEY_ID}" \
                   -var="aws_secret_key=${AWS_SECRET_ACCESS_KEY}" \
-                  -var-file=tf-dev.tfvars -auto-approve
+                   -auto-approve
               """
             } else {
               sh """
                 terraform apply \
                   -var="aws_access_key=${AWS_ACCESS_KEY_ID}" \
                   -var="aws_secret_key=${AWS_SECRET_ACCESS_KEY}" \
-                  -var-file=tf-dev.tfvars -auto-approve
+                   -auto-approve
               """
               build job: 'final-iti-project-deploy'
             }
