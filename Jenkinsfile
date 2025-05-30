@@ -58,7 +58,7 @@ pipeline {
 
             writeFile file: 'ansible/inventory.ini', text: """
               [ec2]
-              ${public_ip} ansible_user=ubuntu
+              ${public_ip} ansible_user=ec2-user
             """
 
             dir('ansible') {
