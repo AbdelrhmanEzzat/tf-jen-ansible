@@ -1,4 +1,3 @@
-
 pipeline {
   agent any
 
@@ -18,33 +17,31 @@ pipeline {
       }
     }
 
-    stage('Terraform Init & Apply/Destroy') {
-      agent {
-        docker {
-          image 'hashicorp/terraform:light'
-          args '-u root:root'
-        }
-      }
+    stage('Terraform Action') {
       steps {
-        dir('Terraform') {
-          script {
-            sh 'terraform init -input=false'
+        script {
+          def terraform = docker.image('hashicorp/terraform:light')
+          terraform.pull()
+          terraform.inside('-u root:root') {
+            dir('Terraform') {
+              sh 'terraform init -input=false'
 
-            if (params.ACTION == 'Destroy') {
-              sh '''
-                terraform destroy \
-                  -var="aws_access_key=${AWS_ACCESS_KEY_ID}" \
-                  -var="aws_secret_key=${AWS_SECRET_ACCESS_KEY}" \
-                  -var-file=tf-dev.tfvars -auto-approve
-              '''
-            } else {
-              sh '''
-                terraform apply \
-                  -var="aws_access_key=${AWS_ACCESS_KEY_ID}" \
-                  -var="aws_secret_key=${AWS_SECRET_ACCESS_KEY}" \
-                  -var-file=tf-dev.tfvars -auto-approve
-              '''
-              build job: 'final-iti-project-deploy'
+              if (params.ACTION == 'Destroy') {
+                sh """
+                  terraform destroy \
+                    -var="aws_access_key=${AWS_ACCESS_KEY_ID}" \
+                    -var="aws_secret_key=${AWS_SECRET_ACCESS_KEY}" \
+                    -var-file=tf-dev.tfvars -auto-approve
+                """
+              } else {
+                sh """
+                  terraform apply \
+                    -var="aws_access_key=${AWS_ACCESS_KEY_ID}" \
+                    -var="aws_secret_key=${AWS_SECRET_ACCESS_KEY}" \
+                    -var-file=tf-dev.tfvars -auto-approve
+                """
+                build job: 'final-iti-project-deploy'
+              }
             }
           }
         }
@@ -61,6 +58,7 @@ pipeline {
     }
   }
 }
+
 
 
     // stage('Ansible Playbook') {
