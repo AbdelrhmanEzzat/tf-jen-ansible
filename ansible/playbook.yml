@@ -1,13 +1,14 @@
 - hosts: ec2
   become: true
   tasks:
-    - name: Update apt
-      apt:
-        update_cache: yes
+    - name: Update yum packages
+      yum:
+        name: "*"
+        state: latest
 
-    - name: Install Apache
-      apt:
-        name: apache2
+    - name: Install Apache (httpd)
+      yum:
+        name: httpd
         state: present
 
     - name: Create a custom HTML page
@@ -32,8 +33,8 @@
           </body>
           </html>
 
-    - name: Ensure Apache is running
+    - name: Ensure Apache is started and enabled
       service:
-        name: apache2
+        name: httpd
         state: started
         enabled: true
