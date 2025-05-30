@@ -19,7 +19,7 @@ pipeline {
 
     stage('Terraform Action') {
       steps {
-        dir('Terraform') {
+        dir('terraform') {
           sh 'terraform init -input=false'
 
           script {
