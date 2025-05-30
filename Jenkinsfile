@@ -13,7 +13,7 @@ pipeline {
   stages {
     stage('Checkout Repo') {
       steps {
-        git branch: 'main', url: 'https://github.com/AbdelrhmanEzzat/ITI-Final-Project.git'
+        git branch: 'main', url: 'https://github.com/AbdelrhmanEzzat/tf-jen-ansible.git'
       }
     }
 
