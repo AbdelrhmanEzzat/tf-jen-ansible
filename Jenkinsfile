@@ -52,7 +52,7 @@ pipeline {
         sshagent(['ec2-ssh']) {
           script {
             def public_ip = sh(
-              script: 'terraform -chdir=Terraform output -raw public_ip',
+              script: 'terraform -chdir=terraform output -raw public_ip',
               returnStdout: true
             ).trim()
 
