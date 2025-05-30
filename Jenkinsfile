@@ -44,31 +44,31 @@ pipeline {
       }
     }
 
-//     stage('Ansible Playbook') {
-//       when {
-//         expression { params.ACTION == 'Apply' }
-//       }
-//       steps {
-//         sshagent(['ec2-ssh']) {
-//           script {
-//             def public_ip = sh(
-//               script: 'terraform -chdir=Terraform output -raw public_ip',
-//               returnStdout: true
-//             ).trim()
+    // stage('Ansible Playbook') {
+    //   when {
+    //     expression { params.ACTION == 'Apply' }
+    //   }
+    //   steps {
+    //     sshagent(['ec2-ssh']) {
+    //       script {
+    //         def public_ip = sh(
+    //           script: 'terraform -chdir=Terraform output -raw public_ip',
+    //           returnStdout: true
+    //         ).trim()
 
-//             writeFile file: 'ansible/inventory.ini', text: """
-//               [ec2]
-//               ${public_ip} ansible_user=ubuntu
-//             """
+    //         writeFile file: 'ansible/inventory.ini', text: """
+    //           [ec2]
+    //           ${public_ip} ansible_user=ubuntu
+    //         """
 
-//             dir('ansible') {
-//               sh 'ansible-playbook -i inventory.ini playbook.yml'
-//             }
-//           }
-//         }
-//       }
-//     }
-//   }
+    //         dir('ansible') {
+    //           sh 'ansible-playbook -i inventory.ini playbook.yml'
+    //         }
+    //       }
+    //     }
+    //   }
+    // }
+  }
 
   post {
     success {
@@ -78,5 +78,4 @@ pipeline {
       echo '❌ Terraform operation failed!'
     }
   }
-}
 }
