@@ -1,6 +1,10 @@
 pipeline {
-  agent any
-
+ agent {
+    docker {
+      image 'hashicorp/terraform:light'
+      args '-u root:root'
+    }
+  }
   parameters {
     choice(name: 'ACTION', choices: ['apply', 'destroy'], description: 'Apply or Destroy Infrastructure')
   }
