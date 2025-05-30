@@ -4,3 +4,36 @@
     - name: Update apt
       apt:
         update_cache: yes
+
+    - name: Install Apache
+      apt:
+        name: apache2
+        state: present
+
+    - name: Create a custom HTML page
+      copy:
+        dest: /var/www/html/index.html
+        content: |
+          <html>
+          <head>
+            <title>Welcome</title>
+            <style>
+              body {
+                background-color: red;
+                color: white;
+                font-size: 24px;
+                text-align: center;
+                padding-top: 20%;
+              }
+            </style>
+          </head>
+          <body>
+            Hello from Abdo!
+          </body>
+          </html>
+
+    - name: Ensure Apache is running
+      service:
+        name: apache2
+        state: started
+        enabled: true
