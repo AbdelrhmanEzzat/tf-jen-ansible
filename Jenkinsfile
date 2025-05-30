@@ -19,35 +19,56 @@ pipeline {
 
     stage('Terraform Action') {
       steps {
-        script {
-          def terraform = docker.image('hashicorp/terraform:light')
-          terraform.pull()
-          terraform.inside('-u root:root') {
-            dir('Terraform') {
-              sh 'terraform init -input=false'
+        dir('Terraform') {
+          sh 'terraform init -input=false'
 
-              if (params.ACTION == 'Destroy') {
-                sh """
-                  terraform destroy \
-                    -var="aws_access_key=${AWS_ACCESS_KEY_ID}" \
-                    -var="aws_secret_key=${AWS_SECRET_ACCESS_KEY}" \
-                    -var-file=tf-dev.tfvars -auto-approve
-                """
-              } else {
-                sh """
-                  terraform apply \
-                    -var="aws_access_key=${AWS_ACCESS_KEY_ID}" \
-                    -var="aws_secret_key=${AWS_SECRET_ACCESS_KEY}" \
-                    -var-file=tf-dev.tfvars -auto-approve
-                """
-                build job: 'final-iti-project-deploy'
-              }
+          script {
+            if (params.ACTION == 'Destroy') {
+              sh """
+                terraform destroy \
+                  -var="aws_access_key=${AWS_ACCESS_KEY_ID}" \
+                  -var="aws_secret_key=${AWS_SECRET_ACCESS_KEY}" \
+                  -var-file=tf-dev.tfvars -auto-approve
+              """
+            } else {
+              sh """
+                terraform apply \
+                  -var="aws_access_key=${AWS_ACCESS_KEY_ID}" \
+                  -var="aws_secret_key=${AWS_SECRET_ACCESS_KEY}" \
+                  -var-file=tf-dev.tfvars -auto-approve
+              """
+              build job: 'final-iti-project-deploy'
             }
           }
         }
       }
     }
-  }
+
+//     stage('Ansible Playbook') {
+//       when {
+//         expression { params.ACTION == 'Apply' }
+//       }
+//       steps {
+//         sshagent(['ec2-ssh']) {
+//           script {
+//             def public_ip = sh(
+//               script: 'terraform -chdir=Terraform output -raw public_ip',
+//               returnStdout: true
+//             ).trim()
+
+//             writeFile file: 'ansible/inventory.ini', text: """
+//               [ec2]
+//               ${public_ip} ansible_user=ubuntu
+//             """
+
+//             dir('ansible') {
+//               sh 'ansible-playbook -i inventory.ini playbook.yml'
+//             }
+//           }
+//         }
+//       }
+//     }
+//   }
 
   post {
     success {
@@ -58,30 +79,3 @@ pipeline {
     }
   }
 }
-
-
-
-    // stage('Ansible Playbook') {
-    //   when {
-    //     expression { params.ACTION == 'apply' }
-    //   }
-    //   steps {
-    //     sshagent(['ec2-ssh']) {
-    //       script {
-    //         def public_ip = sh(
-    //           script: 'terraform -chdir=terraform output -raw public_ip',
-    //           returnStdout: true
-    //         ).trim()
-
-    //         writeFile file: 'ansible/inventory.ini', text: """
-    //           [ec2]
-    //           ${public_ip} ansible_user=ubuntu
-    //         """
-
-    //         dir('ansible') {
-    //           sh 'ansible-playbook -i inventory.ini playbook.yml'
-    //         }
-    //       }
-    //     }
-    //   }
-    // }
