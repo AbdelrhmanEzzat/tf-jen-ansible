@@ -1,0 +1,24 @@
+# === Terraform ===
+terraform/.terraform/
+terraform/*.tfstate
+terraform/*.tfstate.*
+terraform/terraform.tfvars
+terraform/terraform.tfplan
+terraform/.terraform.lock.hcl
+terraform/crash.log
+terraform/override.tf
+terraform/override.tf.json
+terraform/*_override.tf
+terraform/*_override.tf.json
+
+# === Ansible ===
+#ansible/inventory.ini  # ignore only if dynamically generated
+
+# === General excludes ===
+*.log
+*.backup
+*.swp
+.DS_Store
+
+# === VS Code (optional) ===
+.vscode/
