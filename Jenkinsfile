@@ -3,7 +3,7 @@ pipeline {
   agent any
 
   parameters {
-    choice(name: 'ACTION', choices: ['Apply', 'Destroy'], description: 'Select the action to perform: Apply or Destroy')
+    choice(name: 'ACTION', choices: ['Apply', 'Destroy'], description: 'Select the action to perform')
   }
 
   environment {
@@ -12,26 +12,39 @@ pipeline {
   }
 
   stages {
-    stage('Checkout') {
+    stage('Checkout Repo') {
       steps {
-        git branch: 'main',
-            url: 'https://github.com/AbdelrhmanEzzat/ITI-Final-Project.git'
+        git branch: 'main', url: 'https://github.com/AbdelrhmanEzzat/ITI-Final-Project.git'
       }
     }
 
-    stage('Terraform Action in Docker') {
+    stage('Terraform Init & Apply/Destroy') {
+      agent {
+        docker {
+          image 'hashicorp/terraform:light'
+          args '-u root:root'
+        }
+      }
       steps {
-        script {
-          docker.image('hashicorp/terraform:light').inside('-u root:root') {
-            dir('Terraform') {
-              sh 'terraform init -input=false'
+        dir('Terraform') {
+          script {
+            sh 'terraform init -input=false'
 
-              if (params.ACTION == 'Destroy') {
-                sh 'terraform destroy -var-file=tf-dev.tfvars -auto-approve'
-              } else {
-                sh 'terraform apply -var-file=tf-dev.tfvars -auto-approve'
-                build job: 'final-iti-project-deploy'
-              }
+            if (params.ACTION == 'Destroy') {
+              sh '''
+                terraform destroy \
+                  -var="aws_access_key=${AWS_ACCESS_KEY_ID}" \
+                  -var="aws_secret_key=${AWS_SECRET_ACCESS_KEY}" \
+                  -var-file=tf-dev.tfvars -auto-approve
+              '''
+            } else {
+              sh '''
+                terraform apply \
+                  -var="aws_access_key=${AWS_ACCESS_KEY_ID}" \
+                  -var="aws_secret_key=${AWS_SECRET_ACCESS_KEY}" \
+                  -var-file=tf-dev.tfvars -auto-approve
+              '''
+              build job: 'final-iti-project-deploy'
             }
           }
         }
@@ -41,13 +54,14 @@ pipeline {
 
   post {
     success {
-      echo 'Terraform operation completed successfully!'
+      echo '✅ Terraform operation completed successfully!'
     }
     failure {
-      echo 'Terraform operation failed!'
+      echo '❌ Terraform operation failed!'
     }
   }
 }
+
 
     // stage('Ansible Playbook') {
     //   when {
