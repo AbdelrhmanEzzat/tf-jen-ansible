@@ -1,7 +1,9 @@
 provider "aws" {
   region     = "us-east-1"
- 
+  access_key = var.aws_access_key
+  secret_key = var.aws_secret_key
 }
+
 
 resource "aws_instance" "web" {
   ami           = "ami-0953476d60561c955"  # Ubuntu 20.04 in us-east-1
