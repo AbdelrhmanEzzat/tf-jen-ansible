@@ -12,3 +12,7 @@ resource "aws_instance" "web" {
     Name = "jenkins-ec2"
   }
 }
+
+output "public_ip" {
+  value = aws_instance.demo.public_ip
+}

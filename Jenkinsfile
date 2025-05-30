@@ -2,11 +2,11 @@ pipeline {
   agent any
 
   parameters {
-    choice(name: 'ACTION', choices: ['apply', 'destroy'], description: 'Choose whether to apply or destroy infrastructure')
+    choice(name: 'ACTION', choices: ['apply', 'destroy'], description: 'Apply or Destroy Infrastructure')
   }
 
   environment {
-    AWS_ACCESS_KEY_ID = credentials('aws-access-key')
+    AWS_ACCESS_KEY_ID     = credentials('aws-access-key')
     AWS_SECRET_ACCESS_KEY = credentials('aws-secret-key')
   }
 
@@ -30,22 +30,30 @@ pipeline {
       }
     }
 
-    stage('Ansible Playbook') {
-      when {
-        expression { params.ACTION == 'apply' }
-      }
-      steps {
-        script {
-          def public_ip = sh(script: 'terraform -chdir=terraform output -raw public_ip', returnStdout: true).trim()
+    // stage('Ansible Playbook') {
+    //   when {
+    //     expression { params.ACTION == 'apply' }
+    //   }
+    //   steps {
+    //     sshagent(['ec2-ssh']) {
+    //       script {
+    //         def public_ip = sh(
+    //           script: 'terraform -chdir=terraform output -raw public_ip',
+    //           returnStdout: true
+    //         ).trim()
 
-          writeFile file: 'ansible/inventory.ini', text: "[ec2]\n${public_ip} ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/your-key.pem"
+    //         writeFile file: 'ansible/inventory.ini', text: """
+    //           [ec2]
+    //           ${public_ip} ansible_user=ubuntu
+    //         """
 
-          dir('ansible') {
-            sh 'ansible-playbook -i inventory.ini playbook.yml'
-          }
-        }
-      }
-    }
+    //         dir('ansible') {
+    //           sh 'ansible-playbook -i inventory.ini playbook.yml'
+    //         }
+    //       }
+    //     }
+    //   }
+    // }
 
     stage('Terraform Destroy') {
       when {
