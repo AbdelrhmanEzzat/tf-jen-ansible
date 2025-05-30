@@ -1,12 +1,9 @@
+
 pipeline {
- agent {
-    docker {
-      image 'hashicorp/terraform:light'
-      args '-u root:root'
-    }
-  }
+  agent any
+
   parameters {
-    choice(name: 'ACTION', choices: ['apply', 'destroy'], description: 'Apply or Destroy Infrastructure')
+    choice(name: 'ACTION', choices: ['Apply', 'Destroy'], description: 'Select the action to perform: Apply or Destroy')
   }
 
   environment {
@@ -15,24 +12,42 @@ pipeline {
   }
 
   stages {
-    stage('Terraform Init') {
+    stage('Checkout') {
       steps {
-        dir('terraform') {
-          sh 'terraform init'
-        }
+        git branch: 'main',
+            url: 'https://github.com/AbdelrhmanEzzat/ITI-Final-Project.git'
       }
     }
 
-    stage('Terraform Apply') {
-      when {
-        expression { params.ACTION == 'apply' }
-      }
+    stage('Terraform Action in Docker') {
       steps {
-        dir('terraform') {
-          sh 'terraform apply -auto-approve -var="aws_access_key=$AWS_ACCESS_KEY_ID" -var="aws_secret_key=$AWS_SECRET_ACCESS_KEY"'
+        script {
+          docker.image('hashicorp/terraform:light').inside('-u root:root') {
+            dir('Terraform') {
+              sh 'terraform init -input=false'
+
+              if (params.ACTION == 'Destroy') {
+                sh 'terraform destroy -var-file=tf-dev.tfvars -auto-approve'
+              } else {
+                sh 'terraform apply -var-file=tf-dev.tfvars -auto-approve'
+                build job: 'final-iti-project-deploy'
+              }
+            }
+          }
         }
       }
     }
+  }
+
+  post {
+    success {
+      echo 'Terraform operation completed successfully!'
+    }
+    failure {
+      echo 'Terraform operation failed!'
+    }
+  }
+}
 
     // stage('Ansible Playbook') {
     //   when {
@@ -58,16 +73,3 @@ pipeline {
     //     }
     //   }
     // }
-
-    stage('Terraform Destroy') {
-      when {
-        expression { params.ACTION == 'destroy' }
-      }
-      steps {
-        dir('terraform') {
-          sh 'terraform destroy -auto-approve -var="aws_access_key=$AWS_ACCESS_KEY_ID" -var="aws_secret_key=$AWS_SECRET_ACCESS_KEY"'
-        }
-      }
-    }
-  }
-}
