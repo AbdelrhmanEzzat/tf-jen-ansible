@@ -37,7 +37,7 @@ pipeline {
                   -var="aws_secret_key=${AWS_SECRET_ACCESS_KEY}" \
                    -auto-approve
               """
-              build job: 'final-iti-project-deploy'
+              build job: 'tf-ansible-jenkins1-deploy'
             }
           }
         }
